@@ -1,7 +1,7 @@
-export default defineEventHandler((event) => {
+export default defineEventHandler(async (event) => {
   requireAdminSession(event)
   const id = getRouterParam(event, 'id')
   const db = getDb()
-  db.prepare('DELETE FROM produits WHERE id = ?').run(id)
+  await db.execute({ sql: 'DELETE FROM produits WHERE id = ?', args: [id] })
   return { ok: true }
 })

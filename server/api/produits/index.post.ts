@@ -7,10 +7,10 @@ export default defineEventHandler(async (event) => {
     throw createError({ statusCode: 400, message: 'Champs obligatoires manquants.' })
   }
 
-  const result = db.prepare(`
-    INSERT INTO produits (nom, categorie, description, prix, unite, image, disponible)
-    VALUES (?, ?, ?, ?, ?, ?, ?)
-  `).run(body.nom, body.categorie, body.description || '', body.prix ?? null, body.unite, body.image || null, body.disponible ? 1 : 0)
+  const result = await db.execute({
+    sql: `INSERT INTO produits (nom, categorie, description, prix, unite, image, disponible) VALUES (?, ?, ?, ?, ?, ?, ?)`,
+    args: [body.nom, body.categorie, body.description || '', body.prix ?? null, body.unite, body.image || null, body.disponible ? 1 : 0],
+  })
 
-  return { id: result.lastInsertRowid }
+  return { id: Number(result.lastInsertRowid) }
 })

@@ -1,26 +1,24 @@
-import Database from 'better-sqlite3'
-import { join } from 'path'
+import { createClient } from '@libsql/client'
 import { mkdirSync } from 'fs'
+import { resolve } from 'path'
 
-let _db: Database.Database | null = null
+let _client: ReturnType<typeof createClient> | null = null
 
-export function getDb(): Database.Database {
-  if (_db) return _db
+export function getDb() {
+  if (_client) return _client
 
   const config = useRuntimeConfig()
-  const dbPath = config.dbPath as string
-  const dir = dbPath.substring(0, dbPath.lastIndexOf('/'))
-  mkdirSync(dir, { recursive: true })
+  const dbPath = resolve(config.dbPath as string)
+  const dir = dbPath.substring(0, dbPath.lastIndexOf('\\') + 1) || dbPath.substring(0, dbPath.lastIndexOf('/') + 1)
+  if (dir) mkdirSync(dir, { recursive: true })
 
-  _db = new Database(dbPath)
-  _db.pragma('journal_mode = WAL')
-  _db.pragma('foreign_keys = ON')
-  migrate(_db)
-  return _db
+  _client = createClient({ url: `file:${dbPath}` })
+  return _client
 }
 
-function migrate(db: Database.Database) {
-  db.exec(`
+export async function initDb() {
+  const db = getDb()
+  await db.executeMultiple(`
     CREATE TABLE IF NOT EXISTS produits (
       id INTEGER PRIMARY KEY AUTOINCREMENT,
       nom TEXT NOT NULL,
@@ -32,7 +30,6 @@ function migrate(db: Database.Database) {
       disponible INTEGER NOT NULL DEFAULT 1,
       created_at TEXT NOT NULL DEFAULT (datetime('now'))
     );
-
     CREATE TABLE IF NOT EXISTS commandes (
       id INTEGER PRIMARY KEY AUTOINCREMENT,
       prenom TEXT NOT NULL,
@@ -45,7 +42,6 @@ function migrate(db: Database.Database) {
       date_souhaitee TEXT NOT NULL,
       created_at TEXT NOT NULL DEFAULT (datetime('now'))
     );
-
     CREATE TABLE IF NOT EXISTS commande_lignes (
       id INTEGER PRIMARY KEY AUTOINCREMENT,
       commande_id INTEGER NOT NULL REFERENCES commandes(id) ON DELETE CASCADE,
@@ -56,14 +52,15 @@ function migrate(db: Database.Database) {
     );
   `)
 
-  const count = (db.prepare('SELECT COUNT(*) as c FROM produits').get() as any).c
-  if (count === 0) {
-    const insert = db.prepare(`INSERT INTO produits (nom, categorie, description, prix, unite, disponible) VALUES (?, ?, ?, ?, ?, 1)`)
-    insert.run('Tomates', 'Légumes', 'Tomates fraîches de saison', 3.50, 'kg')
-    insert.run('Courgettes', 'Légumes', 'Courgettes vertes ou jaunes', 2.00, 'kg')
-    insert.run('Salade', 'Légumes feuilles', 'Laitue, batavia, roquette selon disponibilité', 1.20, 'pièce')
-    insert.run('Haricots verts', 'Légumes', 'Haricots verts fins', 4.00, 'kg')
-    insert.run('Pommes de terre', 'Légumes racines', 'Variétés de saison', 1.50, 'kg')
-    insert.run('Oignons', 'Légumes racines', null, 1.80, 'kg')
+  const { rows } = await db.execute('SELECT COUNT(*) as c FROM produits')
+  if (Number(rows[0].c) === 0) {
+    await db.executeMultiple(`
+      INSERT INTO produits (nom, categorie, description, prix, unite, disponible) VALUES ('Tomates', 'Légumes', 'Tomates fraîches de saison', 3.50, 'kg', 1);
+      INSERT INTO produits (nom, categorie, description, prix, unite, disponible) VALUES ('Courgettes', 'Légumes', 'Courgettes vertes ou jaunes', 2.00, 'kg', 1);
+      INSERT INTO produits (nom, categorie, description, prix, unite, disponible) VALUES ('Salade', 'Légumes feuilles', 'Laitue, batavia, roquette selon disponibilité', 1.20, 'pièce', 1);
+      INSERT INTO produits (nom, categorie, description, prix, unite, disponible) VALUES ('Haricots verts', 'Légumes', 'Haricots verts fins', 4.00, 'kg', 1);
+      INSERT INTO produits (nom, categorie, description, prix, unite, disponible) VALUES ('Pommes de terre', 'Légumes racines', 'Variétés de saison', 1.50, 'kg', 1);
+      INSERT INTO produits (nom, categorie, description, prix, unite, disponible) VALUES ('Oignons', 'Légumes racines', '', 1.80, 'kg', 1);
+    `)
   }
 }
