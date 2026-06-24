@@ -74,7 +74,7 @@
 </template>
 
 <script setup lang="ts">
-definePageMeta({ middleware: 'admin-auth' })
+definePageMeta({ layout: 'admin', middleware: 'admin-auth' })
 
 const { data: commandes, pending } = await useFetch<any[]>('/api/admin/commandes')
 

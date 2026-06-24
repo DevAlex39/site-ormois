@@ -168,7 +168,7 @@
 </template>
 
 <script setup lang="ts">
-definePageMeta({ middleware: 'admin-auth' })
+definePageMeta({ layout: 'admin', middleware: 'admin-auth' })
 
 const { data: produits, pending, refresh } = await useFetch<any[]>('/api/produits?all=1')
 

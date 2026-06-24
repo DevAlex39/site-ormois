@@ -48,6 +48,7 @@ async function login() {
   }
 }
 
+definePageMeta({ layout: 'admin' })
 useHead({ title: 'Connexion — Admin Ferme de l\'Ormois' })
 </script>
 

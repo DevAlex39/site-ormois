@@ -52,7 +52,7 @@
 </template>
 
 <script setup lang="ts">
-definePageMeta({ middleware: 'admin-auth' })
+definePageMeta({ layout: 'admin', middleware: 'admin-auth' })
 
 const logoSvg = `<svg viewBox="0 0 48 48" width="36" height="36"><circle cx="24" cy="24" r="23" fill="#1f4527"/><path d="M24 37 V21" fill="none" stroke="#f4ecdc" stroke-width="2" stroke-linecap="round"/><path d="M24 28 C17.5 28 13 23.5 13 16.5 C20 16.5 24 21 24 28 Z" fill="#f4ecdc"/><path d="M24 25 C30.5 25 35 20.5 35 13.5 C28 13.5 24 18 24 25 Z" fill="#cfe3b8"/></svg>`
 const icons = {
