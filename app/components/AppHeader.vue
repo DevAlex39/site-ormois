@@ -8,10 +8,13 @@
     <div class="container header-inner">
       <!-- Logo -->
       <a href="/" class="logo" @click="onLogo">
-        <span class="logo-mark" v-html="logoSvg"></span>
+        <span class="logo-mark">
+          <img v-if="contenu?.general_logo" :src="contenu.general_logo" alt="Logo" class="logo-img" />
+          <span v-else v-html="logoSvg"></span>
+        </span>
         <span class="logo-text">
           <small>LA FERME DE</small>
-          <strong>L'ORMOIS</strong>
+          <strong>{{ contenu?.general_nom?.replace(/^La Ferme de /i, '') || 'L\'ORMOIS' }}</strong>
         </span>
       </a>
 
@@ -40,6 +43,7 @@
 <script setup lang="ts">
 const route = useRoute()
 const router = useRouter()
+const { data: contenu } = await useFetch<Record<string, string>>('/api/contenu', { key: 'site-contenu' })
 
 const menuOpen = ref(false)
 const active = ref('accueil')
@@ -48,6 +52,7 @@ const scrolled = ref(false)
 const sections = [
   { id: 'accueil', label: 'Accueil' },
   { id: 'ferme', label: 'La Ferme' },
+  { id: 'apropos', label: 'À propos de nous' },
   { id: 'produits', label: 'Produits' },
   { id: 'galerie', label: 'Galerie' },
   { id: 'contact', label: 'Contact' },
@@ -144,6 +149,7 @@ watch(() => route.path, () => nextTick(() => setTimeout(setupObserver, 100)))
 /* Logo */
 .logo { display: flex; align-items: center; gap: 0.7rem; }
 .logo-mark { display: inline-flex; filter: drop-shadow(0 2px 4px rgba(0,0,0,0.18)); }
+.logo-img { width: 44px; height: 44px; object-fit: contain; border-radius: 4px; }
 .logo-text { display: flex; flex-direction: column; line-height: 1; color: #fff; }
 .logo-text small {
   font-family: 'Spectral', serif; font-weight: 500;
@@ -174,9 +180,15 @@ watch(() => route.path, () => nextTick(() => setTimeout(setupObserver, 100)))
   transform: scaleX(0); transform-origin: left; transition: transform 0.2s;
 }
 .nav > a:hover::after, .nav > a.active::after { transform: scaleX(1); }
+.nav > a.nav-cta::after { display: none; }
 .header.solid .nav > a { text-shadow: none; }
 
-.nav-cta { font-size: 0.92rem; padding: 0.65rem 1.4rem; }
+.nav-cta {
+  font-size: 0.9rem; padding: 0.6rem 1.35rem;
+  box-shadow: none;
+  transition: background 0.2s, color 0.2s;
+}
+.nav-cta:hover { transform: none; background: var(--terre-fonce); }
 
 /* Burger */
 .burger { display: none; flex-direction: column; gap: 5px; background: none; border: none; cursor: pointer; padding: 4px; }

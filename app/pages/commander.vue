@@ -63,6 +63,30 @@
           </div>
         </section>
 
+        <!-- Récap commande -->
+        <div v-if="selectedIds.length" class="recap-card">
+          <h3 class="recap-title">Récapitulatif</h3>
+          <div class="recap-lines">
+            <div v-for="p in selectedProduits" :key="p.id" class="recap-line">
+              <span class="recap-nom">{{ p.nom }}</span>
+              <span class="recap-qty">{{ quantities[p.id] || 1 }} {{ p.unite }}</span>
+              <span class="recap-sous" v-if="p.prix">{{ formatPrice((quantities[p.id] || 1) * p.prix) }} €</span>
+              <span class="recap-sous no-price" v-else>—</span>
+            </div>
+          </div>
+          <div class="recap-totaux">
+            <div class="recap-total" v-if="totalPrix > 0">
+              <span>Total estimé</span>
+              <strong class="recap-total-val">{{ formatPrice(totalPrix) }} €</strong>
+            </div>
+            <div class="recap-total" v-if="totalPoids > 0">
+              <span>Poids total</span>
+              <strong>{{ formatPoids(totalPoids) }}</strong>
+            </div>
+          </div>
+          <p class="recap-note">* Prix indicatifs, susceptibles d'ajustement selon la récolte du jour.</p>
+        </div>
+
         <!-- Étape 2 -->
         <section class="step">
           <div class="step-head"><span class="step-num">2</span><h2>Date de retrait souhaitée</h2></div>
@@ -100,7 +124,10 @@
         </section>
 
         <div class="submit-bar">
-          <span class="summary">{{ summary }}</span>
+          <div class="submit-summary">
+            <span class="summary">{{ summary }}</span>
+            <span v-if="totalPrix > 0" class="summary-total">{{ formatPrice(totalPrix) }} €<span v-if="totalPoids > 0"> · {{ formatPoids(totalPoids) }}</span></span>
+          </div>
           <button type="submit" class="btn btn-accent" :disabled="sending || selectedIds.length === 0">
             {{ sending ? 'Envoi en cours…' : 'Envoyer ma commande' }}
           </button>
@@ -137,7 +164,22 @@ const summary = computed(() => {
   return n === 1 ? '1 produit sélectionné' : `${n} produits sélectionnés`
 })
 
+const selectedProduits = computed(() =>
+  (produits.value ?? []).filter((p: any) => selectedIds.value.includes(p.id))
+)
+const totalPrix = computed(() =>
+  selectedProduits.value.reduce((sum: number, p: any) => sum + (p.prix ? p.prix * (quantities.value[p.id] || 1) : 0), 0)
+)
+const totalPoids = computed(() =>
+  selectedProduits.value.reduce((sum: number, p: any) => {
+    if (p.unite === 'kg') return sum + (quantities.value[p.id] || 1)
+    if (p.unite === 'g') return sum + (quantities.value[p.id] || 1) / 1000
+    return sum
+  }, 0)
+)
+
 function formatPrice(v: number) { return Number(v).toFixed(2).replace('.', ',') }
+function formatPoids(kg: number) { return kg >= 1 ? `${kg.toFixed(1).replace('.', ',')} kg` : `${Math.round(kg * 1000)} g` }
 
 function toggle(id: number) {
   const i = selectedIds.value.indexOf(id)
@@ -229,8 +271,29 @@ useHead({ title: 'Commander — La Ferme de l\'Ormois' })
 .grid2 { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; }
 .span2 { grid-column: 1 / -1; }
 
+.recap-card {
+  background: var(--creme); border-radius: 16px; padding: 1.4rem 1.5rem;
+  box-shadow: 0 4px 18px rgba(47,59,31,0.09); border: 1.5px solid #e0d9ca;
+  margin-bottom: 2rem;
+}
+.recap-title { font-family: 'Marcellus', serif; font-size: 1.1rem; color: var(--vert-fonce); margin-bottom: 1rem; }
+.recap-lines { display: flex; flex-direction: column; gap: 0.5rem; margin-bottom: 1rem; }
+.recap-line { display: flex; align-items: center; gap: 0.75rem; font-size: 0.92rem; }
+.recap-nom { flex: 1; color: var(--texte); }
+.recap-qty { color: var(--texte-doux); min-width: 60px; }
+.recap-sous { font-family: 'Marcellus', serif; color: var(--terre); min-width: 70px; text-align: right; }
+.recap-sous.no-price { color: #ccc; }
+.recap-totaux { border-top: 1px solid #e4ddd1; padding-top: 0.85rem; display: flex; gap: 1.5rem; flex-wrap: wrap; }
+.recap-total { display: flex; align-items: center; justify-content: space-between; gap: 1rem; flex: 1; min-width: 160px; }
+.recap-total span { font-size: 0.88rem; color: var(--texte-doux); }
+.recap-total-val { font-family: 'Marcellus', serif; font-size: 1.3rem; color: var(--vert-fonce); }
+.recap-total strong { font-family: 'Marcellus', serif; font-size: 1.1rem; color: var(--texte); }
+.recap-note { font-size: 0.75rem; color: #b0a898; margin-top: 0.75rem; font-style: italic; }
+
 .submit-bar { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 1rem; padding-top: 0.5rem; }
+.submit-summary { display: flex; flex-direction: column; gap: 0.15rem; }
 .summary { font-size: 0.95rem; color: var(--texte-doux); }
+.summary-total { font-family: 'Marcellus', serif; font-size: 1.1rem; color: var(--vert-fonce); }
 
 .success-card {
   background: var(--creme); border-radius: 20px; padding: 3.5rem 2.5rem; text-align: center;

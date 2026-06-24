@@ -12,7 +12,7 @@
       <img src="/Accueil.jpg" alt="Serre de la Ferme de l'Ormois" class="hero-bg" />
       <div class="hero-overlay"></div>
       <div class="hero-content">
-        <p class="hero-kicker">Maraîchage en circuit court · Marandeuil, Côte-d'Or</p>
+        <p class="hero-kicker">{{ c.general_slogan || 'Maraîchage en circuit court · Marandeuil, Côte-d\'Or' }}</p>
         <h1 class="hero-title">La Ferme<br />de l'Ormois</h1>
         <p class="hero-sub">Des légumes frais et de saison, cultivés avec soin et récoltés au bon moment.</p>
         <div class="hero-actions">
@@ -35,14 +35,14 @@
       <div class="ferme-grid">
         <div>
           <span class="eyebrow">Notre exploitation</span>
-          <h2 class="section-title">Une agriculture biologique, au rythme des saisons</h2>
-          <p class="lead">Installée à Marandeuil, en Côte-d'Or, la Ferme de l'Ormois cultive des légumes frais dans le respect de la terre et des hommes. Chaque récolte est pensée pour vous offrir le meilleur du moment.</p>
-          <p class="lead">Notre engagement : des produits cultivés avec soin, disponibles en vente directe à la ferme ou sur commande.</p>
+          <h2 class="section-title">{{ c.ferme_titre || 'Une agriculture biologique, au rythme des saisons' }}</h2>
+          <p class="lead" v-if="c.ferme_lead1">{{ c.ferme_lead1 }}</p>
+          <p class="lead" v-if="c.ferme_lead2">{{ c.ferme_lead2 }}</p>
           <NuxtLink to="/contact" class="btn btn-outline">Nous rendre visite</NuxtLink>
         </div>
         <div class="ferme-media">
           <div class="ferme-photo">
-            <img src="/Serre.jpg" alt="Serre de tomates en pleine culture" />
+            <img :src="c.ferme_image || '/Serre.jpg'" alt="Serre de tomates en pleine culture" />
           </div>
           <div class="value-card">
             <span class="value-icon" v-html="icons.leaf"></span>
@@ -54,6 +54,27 @@
             <h4>Fraîcheur du jour</h4>
             <p>Récoltés à maturité, disponibles juste après la cueillette.</p>
           </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ===== À PROPOS DE NOUS ===== -->
+    <section id="sec-apropos" data-section="apropos" class="apropos">
+      <div class="apropos-grid">
+        <div class="apropos-media">
+          <img :src="c.apropos_image || '/Serre.jpg'" alt="La Ferme de l'Ormois" />
+          <div class="apropos-badge">
+            <span class="badge-line1">{{ c.apropos_badge1 || 'Du semis' }}</span>
+            <span class="badge-line2">{{ c.apropos_badge2 || "jusqu'à votre panier" }}</span>
+          </div>
+        </div>
+        <div class="apropos-body">
+          <span class="eyebrow">À propos de nous</span>
+          <h2 class="section-title">{{ c.apropos_titre || "L'histoire de la Ferme de l'Ormois" }}</h2>
+          <p class="lead" v-if="c.apropos_para1">{{ c.apropos_para1 }}</p>
+          <p class="lead" v-if="c.apropos_para2">{{ c.apropos_para2 }}</p>
+          <p class="lead" v-if="c.apropos_para3">{{ c.apropos_para3 }}</p>
+          <p class="apropos-signature" v-if="c.apropos_signature">— <em>{{ c.apropos_signature }}</em></p>
         </div>
       </div>
     </section>
@@ -114,13 +135,13 @@
         </div>
         <div class="gallery-grid">
           <div
-            v-for="(n, i) in galleryPhotos"
-            :key="n"
+            v-for="(item, i) in galleryPhotos"
+            :key="item.id"
             class="gallery-item"
             :class="'g' + i"
             @click="openPhoto(i)"
           >
-            <img :src="photoUrl(n)" alt="Photo de la ferme" loading="lazy" />
+            <img :src="item.path" alt="Photo de la ferme" loading="lazy" />
           </div>
         </div>
       </div>
@@ -135,20 +156,24 @@
           <div class="info-list">
             <div class="info-block">
               <span class="info-icon" v-html="icons.pin"></span>
-              <div><strong>Adresse</strong><span>7 BIS Route de l'Ormois<br />21270 Marandeuil, France</span></div>
+              <div><strong>Adresse</strong><span v-html="(c.contact_adresse || '7 BIS Route de l\'Ormois\n21270 Marandeuil, France').replace(/\n/g, '<br />')"></span></div>
             </div>
             <div class="info-block">
               <span class="info-icon" v-html="icons.phone"></span>
-              <div><strong>Téléphone</strong><a href="tel:+33620499321">06 20 49 93 21</a></div>
+              <div><strong>Téléphone</strong><a :href="'tel:+33' + (c.contact_telephone || '0620499321').replace(/^0/, '').replace(/\s/g, '')">{{ c.contact_telephone || '06 20 49 93 21' }}</a></div>
             </div>
             <div class="info-block">
               <span class="info-icon" v-html="icons.mail"></span>
-              <div><strong>Email</strong><a href="mailto:lafermedelormois@gmail.com">lafermedelormois@gmail.com</a></div>
+              <div><strong>Email</strong><a :href="'mailto:' + (c.contact_email || 'lafermedelormois@gmail.com')">{{ c.contact_email || 'lafermedelormois@gmail.com' }}</a></div>
+            </div>
+            <div class="info-block" v-if="c.contact_horaires">
+              <span class="info-icon" v-html="icons.clock"></span>
+              <div><strong>Horaires</strong><span style="white-space:pre-line">{{ c.contact_horaires }}</span></div>
             </div>
           </div>
           <div class="contact-actions">
             <NuxtLink to="/commander" class="btn btn-accent">Passer commande</NuxtLink>
-            <a href="https://www.facebook.com/lafermedelormois" target="_blank" rel="noopener" class="btn btn-fb">
+            <a :href="c.contact_facebook || 'https://www.facebook.com/lafermedelormois'" target="_blank" rel="noopener" class="btn btn-fb">
               <svg viewBox="0 0 24 24" fill="currentColor" width="18" height="18"><path d="M18 2h-3a5 5 0 0 0-5 5v3H7v4h3v8h4v-8h3l1-4h-4V7a1 1 0 0 1 1-1h3z"/></svg>
               Facebook
             </a>
@@ -180,7 +205,7 @@
       <button class="lb-btn lb-prev" @click="prevPhoto" aria-label="Précédent">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg>
       </button>
-      <img :src="photoUrl(galleryPhotos[lightbox])" alt="Photo de la ferme" class="lb-img" />
+      <img :src="galleryPhotos[lightbox!]?.path" alt="Photo de la ferme" class="lb-img" />
       <button class="lb-btn lb-next" @click="nextPhoto" aria-label="Suivant">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
       </button>
@@ -190,6 +215,9 @@
 
 <script setup lang="ts">
 const { data: produits } = await useFetch<any[]>('/api/produits')
+const { data: contenu } = await useFetch<Record<string, string>>('/api/contenu')
+const { data: galerieItems } = await useFetch<{ id: number; path: string }[]>('/api/galerie')
+const c = computed(() => contenu.value ?? {})
 const router = useRouter()
 
 /* Active le snap plein écran uniquement sur cette page */
@@ -222,12 +250,11 @@ const productFallbacks = ['/photo_15.jpg', '/photo_19.jpg', '/photo_23.jpg', '/p
 function fallbackImg(i: number) { return productFallbacks[i % productFallbacks.length] }
 
 /* ----- Galerie + lightbox ----- */
-const galleryPhotos = [8, 4, 3, 28, 30, 5, 22, 14]
-function photoUrl(n: number) { return `/photo_${String(n).padStart(2, '0')}.jpg` }
+const galleryPhotos = computed(() => galerieItems.value ?? [])
 const lightbox = ref<number | null>(null)
 function openPhoto(i: number) { lightbox.value = i }
-function prevPhoto() { lightbox.value = (lightbox.value! - 1 + galleryPhotos.length) % galleryPhotos.length }
-function nextPhoto() { lightbox.value = (lightbox.value! + 1) % galleryPhotos.length }
+function prevPhoto() { lightbox.value = (lightbox.value! - 1 + galleryPhotos.value.length) % galleryPhotos.value.length }
+function nextPhoto() { lightbox.value = (lightbox.value! + 1) % galleryPhotos.value.length }
 
 /* ----- Défilement doux vers une section ----- */
 function scrollTo(id: string) {
@@ -244,6 +271,7 @@ const icons = {
   pin: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>`,
   phone: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72c.13.96.36 1.9.7 2.81a2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45c.91.34 1.85.57 2.81.7A2 2 0 0 1 22 16.92z"/></svg>`,
   mail: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="4" width="20" height="16" rx="2"/><path d="m22 7-10 5L2 7"/></svg>`,
+  clock: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>`,
 }
 const footerLogo = `<svg viewBox="0 0 48 48" width="34" height="34" aria-hidden="true"><circle cx="24" cy="24" r="23" fill="#2f6b39"/><path d="M24 37 V21" fill="none" stroke="#f4ecdc" stroke-width="2" stroke-linecap="round"/><path d="M24 28 C17.5 28 13 23.5 13 16.5 C20 16.5 24 21 24 28 Z" fill="#f4ecdc"/><path d="M24 25 C30.5 25 35 20.5 35 13.5 C28 13.5 24 18 24 25 Z" fill="#cfe3b8"/></svg>`
 </script>
@@ -302,6 +330,35 @@ const footerLogo = `<svg viewBox="0 0 48 48" width="34" height="34" aria-hidden=
 .value-icon :deep(svg) { width: 30px; height: 30px; }
 .value-card h4 { font-size: 1.2rem; margin-bottom: 0.35rem; color: var(--vert-fonce); }
 .value-card p { font-size: 0.88rem; line-height: 1.6; color: var(--texte-doux); }
+
+/* ---------- À PROPOS ---------- */
+.apropos {
+  min-height: 100vh; display: flex; align-items: center;
+  background: var(--creme);
+  padding: calc(var(--header-h) + 2rem) clamp(1.25rem, 5vw, 4.5rem) 4rem;
+}
+.apropos-grid {
+  max-width: 1180px; margin: 0 auto; width: 100%;
+  display: grid; grid-template-columns: 0.9fr 1.1fr; gap: clamp(2rem, 5vw, 5rem); align-items: center;
+}
+.apropos-media {
+  position: relative; border-radius: 20px; overflow: hidden;
+  box-shadow: var(--ombre-forte); aspect-ratio: 4/5; max-height: 540px;
+}
+.apropos-media img { width: 100%; height: 100%; object-fit: cover; }
+.apropos-badge {
+  position: absolute; bottom: 24px; right: -16px;
+  background: var(--vert-fonce); color: #fff;
+  padding: 1rem 1.4rem; border-radius: 16px;
+  box-shadow: 0 8px 24px rgba(0,0,0,0.25);
+  display: flex; flex-direction: column; gap: 0.15rem;
+}
+.badge-line1 { font-family: 'Marcellus', serif; font-size: 1.25rem; }
+.badge-line2 { font-size: 0.82rem; color: rgba(255,255,255,0.75); font-style: italic; }
+.apropos-body .eyebrow { margin-bottom: 0.8rem; }
+.apropos-body .section-title { margin-bottom: 1.4rem; }
+.apropos-body .lead { font-size: clamp(1rem, 1.4vw, 1.1rem); line-height: 1.85; color: #4a4537; margin-bottom: 1rem; }
+.apropos-signature { margin-top: 1.5rem; font-family: 'Marcellus', serif; font-size: 1.05rem; color: var(--vert); }
 
 /* ---------- PRODUITS ---------- */
 .produits {
@@ -400,7 +457,8 @@ const footerLogo = `<svg viewBox="0 0 48 48" width="34" height="34" aria-hidden=
 @media (max-width: 860px) {
   html.snap { scroll-snap-type: none; }
   .home > section { min-height: auto; }
-  .ferme-grid, .contact-grid { grid-template-columns: 1fr; }
+  .ferme-grid, .apropos-grid, .contact-grid { grid-template-columns: 1fr; }
+  .apropos-badge { right: 12px; }
   .gallery-grid { grid-template-columns: repeat(2, 1fr); }
   .gallery-item.g0, .gallery-item.g3 { grid-row: auto; grid-column: auto; }
   .hero { min-height: 100vh; }
