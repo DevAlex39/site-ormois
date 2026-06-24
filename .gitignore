@@ -25,3 +25,6 @@ logs
 
 # SQLite database
 data/*.db
+
+# Images uploadées par l'admin (propres à chaque instance)
+public/uploads/
