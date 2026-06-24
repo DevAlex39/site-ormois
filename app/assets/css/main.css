@@ -3,7 +3,7 @@
    À coller dans : app/assets/css/main.css
    ============================================================ */
 
-@import url('https://fonts.googleapis.com/css2?family=Marcellus&family=Spectral:ital,wght@0,300;0,400;0,500;0,600;1,400&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Marcellus&family=Spectral:ital,wght@0,300;0,400;0,500;0,600;1,400&subset=latin,latin-ext&display=swap');
 
 :root {
   /* Verts de la ferme */
@@ -73,9 +73,11 @@ img { max-width: 100%; display: block; }
 .eyebrow {
   display: inline-block;
   font-family: 'Spectral', serif;
-  font-size: 0.8rem;
-  letter-spacing: 3px;
+  font-size: 0.75rem;
+  letter-spacing: 2.5px;
   text-transform: uppercase;
+  /* Forcer Georgia comme fallback pour les caractères accentués en majuscule */
+  font-variant-caps: all-small-caps;
   color: var(--terre);
   margin-bottom: 0.8rem;
 }

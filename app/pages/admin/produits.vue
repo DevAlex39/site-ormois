@@ -322,6 +322,7 @@ useHead({ title: 'Produits — Admin Ferme de l\'Ormois' })
   padding: 1.25rem 2rem;
   display: flex; align-items: center; justify-content: space-between; gap: 1rem;
   box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+  position: sticky; top: 0; z-index: 10;
 }
 .admin-topbar h1 { font-family: 'Marcellus', serif; font-size: 1.4rem; color: var(--vert-fonce); }
 .topbar-sub { font-size: 0.82rem; color: var(--texte-doux); margin-top: 0.15rem; }
@@ -431,7 +432,7 @@ useHead({ title: 'Produits — Admin Ferme de l\'Ormois' })
 .tile-visibility.vis { background: #d4edda; color: #1a6b25; }
 .tile-visibility.hid { background: #f8e0dc; color: #a04030; }
 .tile-body { padding: 0.9rem 1rem; flex: 1; }
-.tile-cat { font-size: 0.72rem; letter-spacing: 1.5px; text-transform: uppercase; color: var(--terre); margin-bottom: 0.3rem; }
+.tile-cat { font-size: 0.78rem; letter-spacing: 0.5px; color: var(--terre); font-weight: 600; margin-bottom: 0.3rem; }
 .tile-body h3 { font-family: 'Marcellus', serif; font-size: 1.05rem; color: var(--vert-fonce); margin-bottom: 0.3rem; }
 .tile-desc { font-size: 0.82rem; color: var(--texte-doux); line-height: 1.5; margin-bottom: 0.5rem; min-height: 36px; }
 .tile-price { font-family: 'Marcellus', serif; font-size: 1rem; color: var(--terre); }
