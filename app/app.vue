@@ -1,19 +1,15 @@
-<!-- ============================================================
-     app.vue
-     Le footer global est masqué sur l'accueil : la section Contact
-     de la page d'accueil intègre déjà son propre pied de page.
-     ============================================================ -->
 <template>
   <div>
     <NuxtRouteAnnouncer />
-    <AppHeader />
+    <AppHeader v-if="!isAdmin" />
     <main>
       <NuxtPage />
     </main>
-    <AppFooter v-if="route.path !== '/'" />
+    <AppFooter v-if="!isAdmin && route.path !== '/'" />
   </div>
 </template>
 
 <script setup lang="ts">
 const route = useRoute()
+const isAdmin = computed(() => route.path.startsWith('/admin'))
 </script>

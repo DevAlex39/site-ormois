@@ -407,7 +407,7 @@ useHead({ title: 'Produits — Admin Ferme de l\'Ormois' })
 .filter-group { display: flex; gap: 0.4rem; flex-wrap: wrap; }
 .filter-pill {
   padding: 0.35rem 0.9rem; border-radius: 30px; font-size: 0.85rem;
-  font-family: 'Spectral', serif; border: 1.5px solid #d8cdb5;
+  font-family: Georgia, 'Times New Roman', serif; border: 1.5px solid #d8cdb5;
   background: var(--creme); color: #5a5446; cursor: pointer; transition: all 0.18s;
 }
 .filter-pill.active, .filter-pill:hover { background: var(--vert); color: #fff; border-color: var(--vert); }
