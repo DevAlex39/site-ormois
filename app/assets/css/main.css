@@ -1,68 +1,138 @@
+/* ============================================================
+   La Ferme de l'Ormois — feuille de style globale (refonte)
+   À coller dans : app/assets/css/main.css
+   ============================================================ */
+
+@import url('https://fonts.googleapis.com/css2?family=Marcellus&family=Spectral:ital,wght@0,300;0,400;0,500;0,600;1,400&display=swap');
+
 :root {
-  --vert: #3a7d44;
+  /* Verts de la ferme */
+  --vert: #2f6b39;
   --vert-clair: #5a9f5f;
-  --vert-fonce: #2a5a32;
-  --terre: #8b5e3c;
-  --beige: #f5f0e8;
-  --beige-fonce: #e8e0d0;
-  --texte: #2c2c2c;
+  --vert-fonce: #1f4527;
+  --vert-nuit: #1b3622;   /* sections sombres (contact) */
+  --vert-galerie: #21422a;
+
+  /* Accent terre / terracotta */
+  --terre: #b9663f;        /* = accent principal (CTA Commander) */
+  --terre-fonce: #a3552f;
+  --orange: #e8a06a;       /* soulignés, détails */
+
+  /* Neutres chauds */
+  --beige: #f4ecdc;        /* fond clair principal */
+  --beige-fonce: #ece1cb;  /* fond alterné */
+  --creme: #fffdf8;        /* cartes */
+  --texte: #2e2a22;
+  --texte-doux: #6f6757;
   --blanc: #ffffff;
-  --ombre: 0 2px 12px rgba(0,0,0,0.1);
+
+  --bleu-fb: #1877f2;
+  --bleu-fb-fonce: #166fe5;
+
+  --ombre: 0 8px 26px rgba(47,59,31,0.10);
+  --ombre-forte: 0 16px 36px rgba(47,59,31,0.16);
+  --header-h: 80px;
 }
 
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
-html { scroll-behavior: smooth; }
+html { scroll-behavior: smooth; scroll-padding-top: var(--header-h); }
+
+/* Snap plein écran : activé uniquement sur l'accueil
+   (la page index ajoute la classe via useHead htmlAttrs) */
+html.snap { scroll-snap-type: y proximity; }
 
 body {
-  font-family: 'Georgia', serif;
+  font-family: 'Spectral', Georgia, serif;
+  font-weight: 400;
   color: var(--texte);
   background: var(--beige);
   line-height: 1.6;
 }
 
-a { color: inherit; text-decoration: none; }
+h1, h2, h3, h4, h5,
+.section-title {
+  font-family: 'Marcellus', Georgia, serif;
+  font-weight: 400;
+  line-height: 1.1;
+  color: var(--vert-fonce);
+}
 
-img { max-width: 100%; }
+a { color: inherit; text-decoration: none; }
+img { max-width: 100%; display: block; }
+
+::selection { background: var(--terre); color: #fff; }
 
 .container {
-  max-width: 1100px;
+  max-width: 1180px;
   margin: 0 auto;
   padding: 0 1.5rem;
 }
 
-/* Boutons */
-.btn {
+/* Petit sur-titre décoratif */
+.eyebrow {
   display: inline-block;
-  padding: 0.75rem 1.75rem;
-  border-radius: 6px;
+  font-family: 'Spectral', serif;
+  font-size: 0.8rem;
+  letter-spacing: 3px;
+  text-transform: uppercase;
+  color: var(--terre);
+  margin-bottom: 0.8rem;
+}
+
+/* ---------------- Boutons ---------------- */
+.btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.85rem 1.9rem;
+  border-radius: 40px;
+  font-family: 'Spectral', serif;
   font-size: 1rem;
-  font-family: inherit;
+  font-weight: 600;
   cursor: pointer;
   border: none;
-  transition: background 0.2s, transform 0.1s;
+  transition: background 0.2s, transform 0.15s, color 0.2s;
 }
 .btn:active { transform: scale(0.98); }
-.btn-primary { background: var(--vert); color: var(--blanc); }
-.btn-primary:hover { background: var(--vert-fonce); }
-.btn-secondary { background: var(--beige-fonce); color: var(--texte); border: 1px solid #ccc; }
-.btn-secondary:hover { background: #ddd; }
-.btn-danger { background: #c0392b; color: var(--blanc); }
-.btn-danger:hover { background: #a93226; }
 
-/* Formulaires */
+.btn-primary { background: var(--vert); color: var(--blanc); }
+.btn-primary:hover { background: var(--vert-fonce); transform: translateY(-1px); }
+
+.btn-accent { background: var(--terre); color: var(--blanc); box-shadow: 0 6px 18px rgba(155,82,52,0.4); }
+.btn-accent:hover { background: var(--terre-fonce); transform: translateY(-1px); }
+
+.btn-cream { background: var(--beige); color: var(--vert-fonce); box-shadow: var(--ombre); }
+.btn-cream:hover { background: #fff; transform: translateY(-2px); }
+
+.btn-outline { background: transparent; border: 1.5px solid var(--vert); color: var(--vert); }
+.btn-outline:hover { background: var(--vert); color: #fff; }
+
+.btn-ghost { background: rgba(255,255,255,0.12); border: 1.5px solid rgba(255,255,255,0.6); color: #fff; }
+.btn-ghost:hover { background: rgba(255,255,255,0.22); }
+
+.btn-fb { background: var(--bleu-fb); color: #fff; box-shadow: 0 6px 18px rgba(24,119,242,0.4); }
+.btn-fb:hover { background: var(--bleu-fb-fonce); }
+
+.btn:disabled { opacity: 0.6; cursor: not-allowed; transform: none; }
+
+/* ---------------- Formulaires ---------------- */
 .form-group { margin-bottom: 1.25rem; }
-.form-group label { display: block; margin-bottom: 0.4rem; font-weight: bold; font-size: 0.95rem; }
+.form-group label {
+  display: block; margin-bottom: 0.45rem;
+  font-weight: 600; font-size: 0.9rem; color: #4a4537;
+}
 .form-group input,
 .form-group select,
 .form-group textarea {
   width: 100%;
-  padding: 0.6rem 0.9rem;
-  border: 1px solid #ccc;
-  border-radius: 6px;
-  font-family: inherit;
+  padding: 0.75rem 0.95rem;
+  border: 1.5px solid #d8cdb5;
+  border-radius: 12px;
+  font-family: 'Spectral', serif;
   font-size: 1rem;
-  background: var(--blanc);
+  background: var(--creme);
+  color: var(--texte);
   transition: border-color 0.2s;
 }
 .form-group input:focus,
@@ -72,29 +142,18 @@ img { max-width: 100%; }
   border-color: var(--vert);
 }
 
-/* Alertes */
-.alert {
-  padding: 1rem 1.25rem;
-  border-radius: 6px;
-  margin-bottom: 1rem;
-}
-.alert-success { background: #d4edda; color: #155724; border: 1px solid #c3e6cb; }
-.alert-error { background: #f8d7da; color: #721c24; border: 1px solid #f5c6cb; }
+/* ---------------- Alertes ---------------- */
+.alert { padding: 1rem 1.25rem; border-radius: 12px; margin-bottom: 1rem; }
+.alert-success { background: #e3efdf; color: #25551f; border: 1px solid #c3e0bb; }
+.alert-error { background: #f8e0dc; color: #7a2e1f; border: 1px solid #f0c4bb; }
 
-/* Section titres */
-.section-title {
-  font-size: 2rem;
-  color: var(--vert-fonce);
-  margin-bottom: 0.5rem;
-}
-.section-subtitle {
-  color: #666;
-  margin-bottom: 2rem;
-}
+/* ---------------- Titres de section ---------------- */
+.section-title { font-size: clamp(2rem, 4.5vw, 3.25rem); margin-bottom: 0.5rem; }
+.section-subtitle { color: var(--texte-doux); margin-bottom: 2rem; font-size: 1.05rem; }
 
-/* Grille produits */
+/* ---------------- Grille produits ---------------- */
 .products-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
-  gap: 1.5rem;
+  grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+  gap: 1.4rem;
 }

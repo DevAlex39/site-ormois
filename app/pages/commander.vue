@@ -1,92 +1,112 @@
+<!-- ============================================================
+     commander.vue — écran de commande dédié (restylé)
+     Le câblage API est conservé à l'identique :
+       GET  /api/produits      (liste)
+       POST /api/commande      ({ ...form, lignes:[{produitId, quantite}] })
+       ?produit=<id>           pré-sélection depuis une carte produit
+     À coller dans : app/pages/commander.vue
+     ============================================================ -->
 <template>
-  <div class="container" style="padding-top:2.5rem;padding-bottom:3rem;max-width:860px">
-    <h1 class="section-title">Passer une commande</h1>
-    <p class="section-subtitle">Sélectionnez vos produits et renseignez vos coordonnées. Nous vous contacterons pour confirmer la commande.</p>
-
-    <div v-if="success" class="alert alert-success">
-      ✅ Votre commande a bien été envoyée ! Nous vous contacterons rapidement pour confirmer.
+  <div class="order-page">
+    <!-- Bandeau -->
+    <div class="order-hero">
+      <img src="/photo_17.jpg" alt="Légumes de la ferme" class="order-hero-bg" />
+      <div class="order-hero-overlay"></div>
+      <div class="order-hero-content">
+        <NuxtLink to="/" class="back-link">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" width="16" height="16"><polyline points="15 18 9 12 15 6"/></svg>
+          Retour au site
+        </NuxtLink>
+        <h1>Passer une commande</h1>
+      </div>
     </div>
-    <div v-if="error" class="alert alert-error">{{ error }}</div>
 
-    <form v-if="!success" @submit.prevent="submit">
-      <!-- Sélection produits -->
-      <section class="form-section">
-        <h2>1. Choisissez vos produits</h2>
-        <div v-if="!produits?.length" class="empty">Aucun produit disponible.</div>
-        <div v-else class="order-products">
-          <div v-for="p in produits" :key="p.id" class="order-product-row">
-            <label class="product-check">
-              <input type="checkbox" :value="p.id" v-model="selectedIds" />
-              <span class="product-name">{{ p.nom }}</span>
-              <span class="product-unit">{{ p.unite }}</span>
-              <span class="product-price" v-if="p.prix">{{ p.prix }} €</span>
-            </label>
-            <div class="qty-field" v-if="selectedIds.includes(p.id)">
-              <label>Quantité :</label>
-              <input type="number" v-model.number="quantities[p.id]" min="1" step="1" style="width:80px" />
+    <div class="order-body">
+      <!-- Confirmation -->
+      <div v-if="success" class="success-card">
+        <span class="success-icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" width="38" height="38"><polyline points="20 6 9 17 4 12"/></svg>
+        </span>
+        <h2>Commande envoyée&nbsp;!</h2>
+        <p>Merci&nbsp;! Nous vous contacterons rapidement pour confirmer votre commande et convenir d'une date de retrait.</p>
+        <NuxtLink to="/" class="btn btn-primary">Retour à l'accueil</NuxtLink>
+      </div>
+
+      <div v-if="error" class="alert alert-error">{{ error }}</div>
+
+      <form v-if="!success" @submit.prevent="submit">
+        <!-- Étape 1 -->
+        <section class="step">
+          <div class="step-head"><span class="step-num">1</span><h2>Choisissez vos produits</h2></div>
+          <div v-if="!produits?.length" class="empty">Aucun produit disponible.</div>
+          <div v-else class="order-rows">
+            <div
+              v-for="p in produits"
+              :key="p.id"
+              class="order-row"
+              :class="{ on: selectedIds.includes(p.id) }"
+            >
+              <div class="check" @click="toggle(p.id)">
+                <svg v-if="selectedIds.includes(p.id)" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" width="16" height="16"><polyline points="20 6 9 17 4 12"/></svg>
+              </div>
+              <div class="row-name" @click="toggle(p.id)">
+                <span class="nm">{{ p.nom }}</span>
+                <span class="un">· {{ p.unite }}</span>
+              </div>
+              <span class="row-price" v-if="p.prix">{{ formatPrice(p.prix) }} €</span>
+              <div class="stepper" v-if="selectedIds.includes(p.id)">
+                <button type="button" @click="dec(p.id)">−</button>
+                <span>{{ quantities[p.id] || 1 }}</span>
+                <button type="button" @click="inc(p.id)">+</button>
+              </div>
             </div>
           </div>
-        </div>
-      </section>
+        </section>
 
-      <!-- Date souhaitée -->
-      <section class="form-section">
-        <h2>2. Date de retrait souhaitée</h2>
-        <div class="form-group" style="max-width:280px">
-          <label>Date *</label>
-          <input type="date" v-model="form.date" :min="minDate" required />
-        </div>
-      </section>
+        <!-- Étape 2 -->
+        <section class="step">
+          <div class="step-head"><span class="step-num">2</span><h2>Date de retrait souhaitée</h2></div>
+          <div class="form-group" style="max-width:280px">
+            <input type="date" v-model="form.date" :min="minDate" required />
+          </div>
+        </section>
 
-      <!-- Coordonnées -->
-      <section class="form-section">
-        <h2>3. Vos coordonnées</h2>
-        <div class="form-row">
-          <div class="form-group">
-            <label>Prénom *</label>
-            <input type="text" v-model="form.prenom" required />
+        <!-- Étape 3 -->
+        <section class="step">
+          <div class="step-head"><span class="step-num">3</span><h2>Vos coordonnées</h2></div>
+          <div class="grid2">
+            <div class="form-group"><label>Prénom *</label><input type="text" v-model="form.prenom" required /></div>
+            <div class="form-group"><label>Nom *</label><input type="text" v-model="form.nom" required /></div>
+            <div class="form-group"><label>Téléphone *</label><input type="tel" v-model="form.telephone" required /></div>
+            <div class="form-group"><label>Email *</label><input type="email" v-model="form.email" required /></div>
+            <div class="form-group span2">
+              <label>Type de client *</label>
+              <select v-model="form.type" required>
+                <option value="">-- Choisir --</option>
+                <option value="particulier">Particulier</option>
+                <option value="professionnel">Professionnel / Restaurant</option>
+                <option value="association">Association / Collectivité</option>
+              </select>
+            </div>
+            <div class="form-group span2" v-if="form.type === 'professionnel'">
+              <label>Nom de l'entreprise</label>
+              <input type="text" v-model="form.entreprise" />
+            </div>
+            <div class="form-group span2">
+              <label>Message / informations complémentaires</label>
+              <textarea v-model="form.message" rows="4" placeholder="Allergies, préférences, questions…"></textarea>
+            </div>
           </div>
-          <div class="form-group">
-            <label>Nom *</label>
-            <input type="text" v-model="form.nom" required />
-          </div>
-        </div>
-        <div class="form-row">
-          <div class="form-group">
-            <label>Téléphone *</label>
-            <input type="tel" v-model="form.telephone" required />
-          </div>
-          <div class="form-group">
-            <label>Email *</label>
-            <input type="email" v-model="form.email" required />
-          </div>
-        </div>
-        <div class="form-group">
-          <label>Type de client *</label>
-          <select v-model="form.type" required>
-            <option value="">-- Choisir --</option>
-            <option value="particulier">Particulier</option>
-            <option value="professionnel">Professionnel / Restaurant</option>
-            <option value="association">Association / Collectivité</option>
-          </select>
-        </div>
-        <div class="form-group" v-if="form.type === 'professionnel'">
-          <label>Nom de l'entreprise</label>
-          <input type="text" v-model="form.entreprise" />
-        </div>
-        <div class="form-group">
-          <label>Message / informations complémentaires</label>
-          <textarea v-model="form.message" rows="4" placeholder="Allergies, préférences, questions…"></textarea>
-        </div>
-      </section>
+        </section>
 
-      <div class="form-submit">
-        <p class="submit-note" v-if="selectedIds.length === 0">⚠ Veuillez sélectionner au moins un produit.</p>
-        <button type="submit" class="btn btn-primary" :disabled="sending || selectedIds.length === 0">
-          {{ sending ? 'Envoi en cours…' : 'Envoyer ma commande' }}
-        </button>
-      </div>
-    </form>
+        <div class="submit-bar">
+          <span class="summary">{{ summary }}</span>
+          <button type="submit" class="btn btn-accent" :disabled="sending || selectedIds.length === 0">
+            {{ sending ? 'Envoi en cours…' : 'Envoyer ma commande' }}
+          </button>
+        </div>
+      </form>
+    </div>
   </div>
 </template>
 
@@ -111,33 +131,36 @@ const minDate = computed(() => {
   return d.toISOString().split('T')[0]
 })
 
-// Pré-sélectionner un produit si passé en query
+const summary = computed(() => {
+  const n = selectedIds.value.length
+  if (n === 0) return 'Sélectionnez au moins un produit'
+  return n === 1 ? '1 produit sélectionné' : `${n} produits sélectionnés`
+})
+
+function formatPrice(v: number) { return Number(v).toFixed(2).replace('.', ',') }
+
+function toggle(id: number) {
+  const i = selectedIds.value.indexOf(id)
+  if (i >= 0) selectedIds.value.splice(i, 1)
+  else { selectedIds.value.push(id); if (!quantities.value[id]) quantities.value[id] = 1 }
+}
+function inc(id: number) { quantities.value[id] = (quantities.value[id] || 1) + 1 }
+function dec(id: number) { quantities.value[id] = Math.max(1, (quantities.value[id] || 1) - 1) }
+
 onMounted(() => {
   const id = Number(route.query.produit)
-  if (id && produits.value?.find((p: any) => p.id === id)) {
+  if (id && produits.value?.find((p) => p.id === id)) {
     selectedIds.value = [id]
     quantities.value[id] = 1
   }
-})
-
-watch(selectedIds, (ids) => {
-  ids.forEach((id) => {
-    if (!quantities.value[id]) quantities.value[id] = 1
-  })
 })
 
 async function submit() {
   sending.value = true
   error.value = ''
   try {
-    const lignes = selectedIds.value.map((id) => ({
-      produitId: id,
-      quantite: quantities.value[id] || 1,
-    }))
-    await $fetch('/api/commande', {
-      method: 'POST',
-      body: { ...form, lignes },
-    })
+    const lignes = selectedIds.value.map((id) => ({ produitId: id, quantite: quantities.value[id] || 1 }))
+    await $fetch('/api/commande', { method: 'POST', body: { ...form, lignes } })
     success.value = true
     window.scrollTo({ top: 0, behavior: 'smooth' })
   } catch (e: any) {
@@ -151,27 +174,78 @@ useHead({ title: 'Commander — La Ferme de l\'Ormois' })
 </script>
 
 <style scoped>
-.form-section { margin-bottom: 2.5rem; padding-bottom: 2rem; border-bottom: 1px solid var(--beige-fonce); }
-.form-section h2 { font-size: 1.25rem; color: var(--vert-fonce); margin-bottom: 1.25rem; }
-.form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; }
-.order-products { display: flex; flex-direction: column; gap: 0.75rem; }
-.order-product-row {
-  display: flex; align-items: center; justify-content: space-between;
-  background: var(--blanc); padding: 0.75rem 1rem; border-radius: 8px;
-  box-shadow: 0 1px 4px rgba(0,0,0,0.07);
-  flex-wrap: wrap; gap: 0.5rem;
+.order-page { background: var(--beige); min-height: 100vh; }
+
+/* Bandeau */
+.order-hero { height: 240px; position: relative; overflow: hidden; }
+.order-hero-bg { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; object-position: center 60%; }
+.order-hero-overlay { position: absolute; inset: 0; background: linear-gradient(180deg, rgba(27,54,34,0.55), rgba(27,54,34,0.78)); }
+.order-hero-content {
+  position: relative; z-index: 2; max-width: 920px; margin: 0 auto; height: 100%;
+  display: flex; flex-direction: column; justify-content: flex-end;
+  padding: 0 1.5rem 1.6rem;
 }
-.product-check { display: flex; align-items: center; gap: 0.75rem; flex: 1; cursor: pointer; }
-.product-check input[type=checkbox] { width: 18px; height: 18px; accent-color: var(--vert); }
-.product-name { font-weight: bold; }
-.product-unit, .product-price { font-size: 0.85rem; color: #888; }
-.product-price { color: var(--vert); font-weight: bold; }
-.qty-field { display: flex; align-items: center; gap: 0.5rem; font-size: 0.9rem; }
-.empty { color: #888; }
-.form-submit { padding-top: 1rem; }
-.submit-note { color: #c0392b; margin-bottom: 0.75rem; font-size: 0.9rem; }
-button:disabled { opacity: 0.6; cursor: not-allowed; }
+.back-link {
+  align-self: flex-start; display: inline-flex; align-items: center; gap: 0.45rem;
+  background: rgba(255,255,255,0.16); color: #fff; font-size: 0.9rem;
+  padding: 0.5rem 1rem; border-radius: 40px; margin-bottom: 1rem; transition: background 0.2s;
+}
+.back-link:hover { background: rgba(255,255,255,0.3); }
+.order-hero-content h1 { color: #fff; font-size: clamp(2rem, 5vw, 2.9rem); text-shadow: 0 2px 14px rgba(0,0,0,0.3); }
+
+/* Corps */
+.order-body { max-width: 920px; margin: 0 auto; padding: 2.5rem 1.5rem 5rem; }
+
+.step { margin-bottom: 2.25rem; }
+.step-head { display: flex; align-items: center; gap: 0.8rem; margin-bottom: 1.15rem; }
+.step-num {
+  flex-shrink: 0; width: 34px; height: 34px; border-radius: 50%;
+  background: var(--vert); color: #fff; font-family: 'Marcellus', serif; font-size: 1.05rem;
+  display: inline-flex; align-items: center; justify-content: center;
+}
+.step-head h2 { font-size: 1.5rem; }
+
+.order-rows { display: flex; flex-direction: column; gap: 0.75rem; }
+.order-row {
+  background: var(--creme); border-radius: 14px; padding: 1rem 1.1rem;
+  box-shadow: 0 4px 14px rgba(47,59,31,0.07); border: 2px solid transparent;
+  display: flex; align-items: center; gap: 0.9rem; transition: border-color 0.2s; flex-wrap: wrap;
+}
+.order-row.on { border-color: var(--vert); }
+.check {
+  flex-shrink: 0; width: 26px; height: 26px; border-radius: 8px;
+  border: 2px solid #c9bda3; background: var(--creme); cursor: pointer;
+  display: flex; align-items: center; justify-content: center; color: #fff;
+}
+.order-row.on .check { background: var(--vert); border-color: var(--vert); }
+.row-name { flex: 1; cursor: pointer; min-width: 120px; }
+.row-name .nm { font-family: 'Marcellus', serif; font-size: 1.2rem; color: var(--vert-fonce); }
+.row-name .un { font-size: 0.88rem; color: #9a9080; margin-left: 0.4rem; }
+.row-price { font-family: 'Marcellus', serif; font-size: 1.05rem; color: var(--terre); white-space: nowrap; }
+.stepper { display: flex; align-items: center; border: 1.5px solid #d8cdb5; border-radius: 40px; overflow: hidden; background: #fff; }
+.stepper button { border: none; background: transparent; width: 34px; height: 34px; font-size: 1.25rem; color: var(--vert); cursor: pointer; }
+.stepper span { min-width: 30px; text-align: center; font-weight: 600; font-size: 0.95rem; }
+
+.grid2 { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; }
+.span2 { grid-column: 1 / -1; }
+
+.submit-bar { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 1rem; padding-top: 0.5rem; }
+.summary { font-size: 0.95rem; color: var(--texte-doux); }
+
+.success-card {
+  background: var(--creme); border-radius: 20px; padding: 3.5rem 2.5rem; text-align: center;
+  box-shadow: 0 12px 40px rgba(47,59,31,0.12);
+}
+.success-icon {
+  display: inline-flex; width: 76px; height: 76px; border-radius: 50%;
+  background: rgba(47,107,57,0.12); color: var(--vert);
+  align-items: center; justify-content: center; margin-bottom: 1.4rem;
+}
+.success-card h2 { font-size: 1.9rem; margin-bottom: 0.75rem; }
+.success-card p { font-size: 1.05rem; color: var(--texte-doux); line-height: 1.7; max-width: 480px; margin: 0 auto 1.75rem; }
+.empty { color: var(--texte-doux); }
+
 @media (max-width: 600px) {
-  .form-row { grid-template-columns: 1fr; }
+  .grid2 { grid-template-columns: 1fr; }
 }
 </style>
