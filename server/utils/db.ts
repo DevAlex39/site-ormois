@@ -54,13 +54,17 @@ export async function initDb() {
 
   const { rows } = await db.execute('SELECT COUNT(*) as c FROM produits')
   if (Number(rows[0].c) === 0) {
-    await db.executeMultiple(`
-      INSERT INTO produits (nom, categorie, description, prix, unite, disponible) VALUES ('Tomates', 'Légumes', 'Tomates fraîches de saison', 3.50, 'kg', 1);
-      INSERT INTO produits (nom, categorie, description, prix, unite, disponible) VALUES ('Courgettes', 'Légumes', 'Courgettes vertes ou jaunes', 2.00, 'kg', 1);
-      INSERT INTO produits (nom, categorie, description, prix, unite, disponible) VALUES ('Salade', 'Légumes feuilles', 'Laitue, batavia, roquette selon disponibilité', 1.20, 'pièce', 1);
-      INSERT INTO produits (nom, categorie, description, prix, unite, disponible) VALUES ('Haricots verts', 'Légumes', 'Haricots verts fins', 4.00, 'kg', 1);
-      INSERT INTO produits (nom, categorie, description, prix, unite, disponible) VALUES ('Pommes de terre', 'Légumes racines', 'Variétés de saison', 1.50, 'kg', 1);
-      INSERT INTO produits (nom, categorie, description, prix, unite, disponible) VALUES ('Oignons', 'Légumes racines', '', 1.80, 'kg', 1);
-    `)
+    const ins = 'INSERT INTO produits (nom, categorie, description, prix, unite, disponible) VALUES (?, ?, ?, ?, ?, ?)'
+    const seeds = [
+      ['Tomates',        'Légumes',         'Tomates fraîches de saison',                  3.50, 'kg',    1],
+      ['Courgettes',     'Légumes',         'Courgettes vertes ou jaunes',                 2.00, 'kg',    1],
+      ['Salade',         'Légumes feuilles','Laitue, batavia, roquette selon disponibilité',1.20, 'pièce', 1],
+      ['Haricots verts', 'Légumes',         'Haricots verts fins',                         4.00, 'kg',    1],
+      ['Pommes de terre','Légumes racines', 'Variétés de saison',                          1.50, 'kg',    1],
+      ['Oignons',        'Légumes racines', '',                                             1.80, 'kg',    1],
+    ]
+    for (const args of seeds) {
+      await db.execute({ sql: ins, args })
+    }
   }
 }
