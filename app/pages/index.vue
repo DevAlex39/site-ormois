@@ -405,4 +405,20 @@ const footerLogo = `<svg viewBox="0 0 48 48" width="34" height="34" aria-hidden=
   .gallery-item.g0, .gallery-item.g3 { grid-row: auto; grid-column: auto; }
   .hero { min-height: 100vh; }
 }
+
+@media (max-width: 600px) {
+  /* Espace suffisant pour que le contenu ne chevauche pas le scroll-cue absolu */
+  .hero-content { padding-bottom: 5rem; }
+  /* Boutons en colonne centrée, pleine largeur */
+  .hero-actions {
+    flex-direction: column;
+    align-items: center;
+    gap: 0.75rem;
+  }
+  .hero-actions .btn {
+    width: 100%;
+    max-width: 280px;
+    justify-content: center;
+  }
+}
 </style>
