@@ -6,8 +6,13 @@
       <div class="admin-topbar">
         <div>
           <h1>Commandes</h1>
-          <p class="topbar-sub">{{ commandes?.length ?? 0 }} commande(s) reçue(s)</p>
+          <p class="topbar-sub">{{ filteredCommandes.length }} commande(s){{ searchQuery || filterStatut ? ' trouvée(s)' : ' reçue(s)' }}</p>
         </div>
+        <div class="topbar-actions">
+          <a class="export-btn" href="/api/admin/commandes/export" download>
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="15" height="15"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+            Export CSV
+          </a>
         <div class="view-toggle">
           <button :class="{ active: view === 'calendar' }" @click="view = 'calendar'">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="15" height="15"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
@@ -18,6 +23,20 @@
             Liste
           </button>
         </div>
+        </div>
+      </div>
+
+      <!-- Barre de recherche/filtre (vue liste uniquement) -->
+      <div v-if="view === 'list'" class="filter-bar">
+        <div class="search-wrap">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="16" height="16" class="search-icon"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+          <input v-model="searchQuery" type="text" placeholder="Rechercher nom, email…" class="search-input" />
+          <button v-if="searchQuery" class="search-clear" @click="searchQuery = ''">✕</button>
+        </div>
+        <select v-model="filterStatut" class="filter-select">
+          <option value="">Tous les statuts</option>
+          <option v-for="s in STATUT_ORDER" :key="s" :value="s">{{ STATUT_LABELS[s].label }}</option>
+        </select>
       </div>
 
       <div class="main-body">
@@ -54,12 +73,12 @@
         </div>
 
         <!-- ===== VUE LISTE ===== -->
-        <div v-else-if="!commandes?.length" class="state-msg empty">
+        <div v-else-if="!filteredCommandes.length" class="state-msg empty">
           <span v-html="emptyIcon"></span>
-          <p>Aucune commande reçue pour le moment.</p>
+          <p>{{ searchQuery || filterStatut ? 'Aucun résultat pour cette recherche.' : 'Aucune commande reçue pour le moment.' }}</p>
         </div>
         <div v-else class="commandes-list">
-          <div v-for="c in commandes" :key="c.id" class="commande-card">
+          <div v-for="c in filteredCommandes" :key="c.id" class="commande-card">
             <div class="card-header">
               <div class="card-identity">
                 <div class="avatar">{{ initials(c.prenom, c.nom) }}</div>
@@ -191,6 +210,24 @@ const STATUT_ORDER = ['en_attente', 'confirmee', 'prete', 'recuperee']
 
 const { data: commandes, pending, refresh } = await useFetch<any[]>('/api/admin/commandes')
 
+const searchQuery = ref('')
+const filterStatut = ref('')
+
+const filteredCommandes = computed(() => {
+  let list = commandes.value ?? []
+  if (filterStatut.value) list = list.filter(c => c.statut === filterStatut.value)
+  if (searchQuery.value) {
+    const q = searchQuery.value.toLowerCase()
+    list = list.filter(c =>
+      `${c.prenom} ${c.nom}`.toLowerCase().includes(q) ||
+      c.email?.toLowerCase().includes(q) ||
+      c.telephone?.includes(q) ||
+      c.entreprise?.toLowerCase().includes(q)
+    )
+  }
+  return list
+})
+
 const changingStatut = reactive<Record<number, boolean>>({})
 async function changeStatut(c: any, statut: string) {
   changingStatut[c.id] = true
@@ -307,10 +344,26 @@ useHead({ title: 'Commandes — Admin Ferme de l\'Ormois' })
 .admin-topbar h1 { font-family: 'Marcellus', serif; font-size: 1.4rem; color: var(--vert-fonce); }
 .topbar-sub { font-size: 0.82rem; color: var(--texte-doux); margin-top: 0.15rem; }
 
+.topbar-actions { display: flex; align-items: center; gap: 0.75rem; flex-wrap: wrap; }
+.export-btn {
+  display: flex; align-items: center; gap: 0.4rem; padding: 0.5rem 1rem;
+  border: 1.5px solid #d8cdb5; border-radius: 10px; font-family: 'Spectral', serif;
+  font-size: 0.88rem; color: var(--vert-fonce); background: var(--creme); cursor: pointer;
+  text-decoration: none; transition: background 0.15s, border-color 0.15s;
+}
+.export-btn:hover { background: #e8f0e9; border-color: var(--vert); }
 .view-toggle { display: flex; border: 1.5px solid #d8cdb5; border-radius: 10px; overflow: hidden; flex-shrink: 0; }
 .view-toggle button { display: flex; align-items: center; gap: 0.4rem; padding: 0.5rem 1rem; border: none; background: none; font-family: 'Spectral', serif; font-size: 0.88rem; color: var(--texte-doux); cursor: pointer; transition: background 0.18s, color 0.18s; }
 .view-toggle button.active { background: var(--vert); color: #fff; }
 
+.filter-bar { display: flex; gap: 0.75rem; padding: 0.85rem 2rem; background: var(--creme); border-bottom: 1px solid #e8e0d0; flex-wrap: wrap; }
+.search-wrap { position: relative; flex: 1; min-width: 200px; }
+.search-icon { position: absolute; left: 0.75rem; top: 50%; transform: translateY(-50%); color: #aaa; pointer-events: none; }
+.search-input { width: 100%; padding: 0.5rem 2.2rem; border: 1.5px solid #d8cdb5; border-radius: 10px; font-family: 'Spectral', serif; font-size: 0.9rem; background: #f8f4ed; outline: none; transition: border-color 0.15s; box-sizing: border-box; }
+.search-input:focus { border-color: var(--vert); }
+.search-clear { position: absolute; right: 0.6rem; top: 50%; transform: translateY(-50%); background: none; border: none; cursor: pointer; color: #aaa; font-size: 0.85rem; padding: 0.2rem; }
+.filter-select { padding: 0.5rem 0.85rem; border: 1.5px solid #d8cdb5; border-radius: 10px; font-family: 'Spectral', serif; font-size: 0.88rem; background: #f8f4ed; color: var(--texte); outline: none; cursor: pointer; }
+.filter-select:focus { border-color: var(--vert); }
 .main-body { padding: 1.75rem 2rem; }
 .state-msg { text-align: center; padding: 4rem 2rem; color: var(--texte-doux); }
 .state-msg.empty { display: flex; flex-direction: column; align-items: center; gap: 0.75rem; }
