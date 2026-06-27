@@ -22,14 +22,9 @@ export default defineEventHandler(async (event) => {
   }
 
   const filename = `produit_${Date.now()}${ext}`
-  // Écrire dans public/uploads (dev) ET .output/public/uploads (prod Nuxt)
-  const dirs = [
-    join(process.cwd(), 'public', 'uploads'),
-    join(process.cwd(), '.output', 'public', 'uploads'),
-  ]
-  for (const dir of dirs) {
-    try { mkdirSync(dir, { recursive: true }); writeFileSync(join(dir, filename), fileField.data) } catch {}
-  }
+  const uploadDir = join(process.cwd(), 'public', 'uploads')
+  mkdirSync(uploadDir, { recursive: true })
+  writeFileSync(join(uploadDir, filename), fileField.data)
 
   return { path: `/uploads/${filename}` }
 })
