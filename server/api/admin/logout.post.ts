@@ -1,4 +1,4 @@
 export default defineEventHandler((event) => {
-  deleteCookie(event, 'admin_session', { path: '/' })
+  destroyAdminSession(event)
   return { ok: true }
 })

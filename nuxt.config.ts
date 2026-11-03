@@ -3,7 +3,8 @@ export default defineNuxtConfig({
   devtools: { enabled: true },
   css: ['~/assets/css/main.css'],
   runtimeConfig: {
-    adminPassword: process.env.ADMIN_PASSWORD || 'admin123',
+    // Vide = connexion admin impossible (pas de mot de passe par défaut devinable)
+    adminPassword: process.env.ADMIN_PASSWORD || '',
     smtpHost: process.env.SMTP_HOST || '',
     smtpPort: process.env.SMTP_PORT || '587',
     smtpUser: process.env.SMTP_USER || '',

@@ -41,8 +41,8 @@ async function login() {
   try {
     await $fetch('/api/admin/login', { method: 'POST', body: { password: password.value } })
     navigateTo('/admin')
-  } catch {
-    error.value = 'Mot de passe incorrect.'
+  } catch (e: any) {
+    error.value = e?.statusCode === 429 ? e.data?.message : 'Mot de passe incorrect.'
   } finally {
     loading.value = false
   }

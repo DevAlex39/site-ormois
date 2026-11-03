@@ -10,6 +10,21 @@ function createTransporter() {
   })
 }
 
+/** Échappe le HTML : les champs saisis par le client ne doivent jamais injecter de balises dans les mails. */
+function esc(v: unknown) {
+  return String(v ?? '')
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#39;')
+}
+
+/** Pour l'objet du mail : pas de retour à la ligne. */
+function oneLine(v: unknown) {
+  return String(v ?? '').replace(/[\r\n]+/g, ' ')
+}
+
 function headerHtml(title: string) {
   return `<div style="background:#1f4527;color:white;padding:20px 24px;border-radius:8px 8px 0 0">
     <div style="display:flex;align-items:center;gap:10px">
@@ -23,8 +38,8 @@ function lignesHtml(lignes: { produit_nom: string; quantite: number; unite: stri
   const rows = lignes.map(l => {
     const prix = l.prix_unitaire ? `${(l.quantite * l.prix_unitaire).toFixed(2).replace('.', ',')} €` : '—'
     return `<tr>
-      <td style="padding:8px 12px;border-bottom:1px solid #eee">${l.produit_nom}</td>
-      <td style="padding:8px 12px;border-bottom:1px solid #eee">${l.quantite} ${l.unite}</td>
+      <td style="padding:8px 12px;border-bottom:1px solid #eee">${esc(l.produit_nom)}</td>
+      <td style="padding:8px 12px;border-bottom:1px solid #eee">${esc(l.quantite)} ${esc(l.unite)}</td>
       <td style="padding:8px 12px;border-bottom:1px solid #eee;text-align:right">${prix}</td>
     </tr>`
   }).join('')
@@ -51,13 +66,13 @@ export async function sendCommandeMail(commande: {
     ${headerHtml('Nouvelle commande — La Ferme de l\'Ormois')}
     <div style="background:#fff;padding:24px;border:1px solid #eee;border-top:none;border-radius:0 0 8px 8px">
       <h2 style="color:#1f4527;font-size:1rem;margin-top:0">Client</h2>
-      <p style="margin:4px 0"><strong>${commande.prenom} ${commande.nom}</strong>${commande.entreprise ? ` — ${commande.entreprise}` : ''}</p>
-      <p style="margin:4px 0">📞 <a href="tel:${commande.telephone}">${commande.telephone}</a> · ✉ <a href="mailto:${commande.email}">${commande.email}</a></p>
-      <p style="margin:4px 0">Type : ${commande.type}</p>
+      <p style="margin:4px 0"><strong>${esc(commande.prenom)} ${esc(commande.nom)}</strong>${commande.entreprise ? ` — ${esc(commande.entreprise)}` : ''}</p>
+      <p style="margin:4px 0">📞 <a href="tel:${esc(commande.telephone)}">${esc(commande.telephone)}</a> · ✉ <a href="mailto:${esc(commande.email)}">${esc(commande.email)}</a></p>
+      <p style="margin:4px 0">Type : ${esc(commande.type)}</p>
       <p style="margin:12px 0;padding:10px;background:#e8f0e9;border-radius:6px;color:#1f4527"><strong>Retrait souhaité : ${dateStr}</strong></p>
       <h2 style="color:#1f4527;font-size:1rem">Produits commandés</h2>
       ${lignesHtml(commande.lignes)}
-      ${commande.message ? `<h2 style="color:#1f4527;font-size:1rem;margin-top:1.5rem">Message</h2><p style="background:#f5f0e8;padding:12px;border-radius:6px;margin:0">${commande.message}</p>` : ''}
+      ${commande.message ? `<h2 style="color:#1f4527;font-size:1rem;margin-top:1.5rem">Message</h2><p style="background:#f5f0e8;padding:12px;border-radius:6px;margin:0;white-space:pre-line">${esc(commande.message)}</p>` : ''}
     </div>
   </div>`
 
@@ -65,7 +80,7 @@ export async function sendCommandeMail(commande: {
     from: `"La Ferme de l'Ormois" <${config.smtpUser}>`,
     to: config.mailTo as string,
     replyTo: commande.email,
-    subject: `🛒 Nouvelle commande — ${commande.prenom} ${commande.nom} (retrait ${dateStr})`,
+    subject: `🛒 Nouvelle commande — ${oneLine(commande.prenom)} ${oneLine(commande.nom)} (retrait ${dateStr})`,
     html,
   })
 }
@@ -82,7 +97,7 @@ export async function sendConfirmationClientMail(commande: {
   const html = `<div style="font-family:Georgia,serif;max-width:600px;margin:auto">
     ${headerHtml('Votre commande est enregistrée !')}
     <div style="background:#fff;padding:24px;border:1px solid #eee;border-top:none;border-radius:0 0 8px 8px">
-      <p style="margin-top:0">Bonjour <strong>${commande.prenom}</strong>,</p>
+      <p style="margin-top:0">Bonjour <strong>${esc(commande.prenom)}</strong>,</p>
       <p>Nous avons bien reçu votre commande. Nous vous contacterons prochainement pour confirmer la date de retrait.</p>
       <p style="padding:10px;background:#e8f0e9;border-radius:6px;color:#1f4527"><strong>Retrait souhaité : ${dateStr}</strong></p>
       <h2 style="color:#1f4527;font-size:1rem">Récapitulatif de votre commande</h2>
@@ -90,8 +105,8 @@ export async function sendConfirmationClientMail(commande: {
       <div style="margin-top:24px;padding:16px;background:#f5f0e8;border-radius:8px;font-size:0.9rem">
         <strong>La Ferme de l'Ormois</strong><br/>
         7 BIS Route de l'Ormois, 21270 Marandeuil<br/>
-        ${commande.telephone_ferme ? `📞 ${commande.telephone_ferme}<br/>` : ''}
-        ${commande.email_ferme ? `✉ ${commande.email_ferme}` : ''}
+        ${commande.telephone_ferme ? `📞 ${esc(commande.telephone_ferme)}<br/>` : ''}
+        ${commande.email_ferme ? `✉ ${esc(commande.email_ferme)}` : ''}
       </div>
       <p style="font-size:0.82rem;color:#888;margin-bottom:0">* Les prix indiqués sont estimatifs et peuvent varier selon la récolte du jour.</p>
     </div>
@@ -137,7 +152,7 @@ export async function sendStatutMail(commande: {
   const html = `<div style="font-family:Georgia,serif;max-width:600px;margin:auto">
     ${headerHtml(`${info.emoji} Commande ${info.label} — La Ferme de l'Ormois`)}
     <div style="background:#fff;padding:24px;border:1px solid #eee;border-top:none;border-radius:0 0 8px 8px">
-      <p style="margin-top:0">Bonjour <strong>${commande.prenom}</strong>,</p>
+      <p style="margin-top:0">Bonjour <strong>${esc(commande.prenom)}</strong>,</p>
       <p>${info.message}</p>
       <p style="padding:10px;background:#e8f0e9;border-radius:6px;color:#1f4527"><strong>Date de retrait : ${dateStr}</strong></p>
       <h2 style="color:#1f4527;font-size:1rem">Votre commande</h2>
@@ -145,8 +160,8 @@ export async function sendStatutMail(commande: {
       <div style="margin-top:24px;padding:16px;background:#f5f0e8;border-radius:8px;font-size:0.9rem">
         <strong>La Ferme de l'Ormois</strong><br/>
         7 BIS Route de l'Ormois, 21270 Marandeuil<br/>
-        ${commande.telephone_ferme ? `📞 ${commande.telephone_ferme}<br/>` : ''}
-        ${commande.email_ferme ? `✉ ${commande.email_ferme}` : ''}
+        ${commande.telephone_ferme ? `📞 ${esc(commande.telephone_ferme)}<br/>` : ''}
+        ${commande.email_ferme ? `✉ ${esc(commande.email_ferme)}` : ''}
       </div>
     </div>
   </div>`

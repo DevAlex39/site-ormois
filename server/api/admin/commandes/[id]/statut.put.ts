@@ -1,9 +1,5 @@
 export default defineEventHandler(async (event) => {
-  const cookie = getCookie(event, 'admin_session')
-  const config = useRuntimeConfig()
-  if (!cookie || cookie !== config.adminPassword) {
-    throw createError({ statusCode: 401, message: 'Non autorisé' })
-  }
+  requireAdminSession(event)
 
   const id = getRouterParam(event, 'id')
   const { statut } = await readBody(event)
